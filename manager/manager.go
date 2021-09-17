@@ -49,7 +49,7 @@ func (m *Manager) hireOrchestra(symphony *conductor.Symphony) {
 	m.SymphonyReady <- true
 }
 
-func (m *Manager) hireMusician(song *conductor.Song) bool {
+func (m *Manager) hireMusician(song *conductor.SongStructure) bool {
 	// create a container here!
 	return true
 }

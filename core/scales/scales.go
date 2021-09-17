@@ -1,7 +1,7 @@
 package scales
 
 import (
-	"github.com/nate-droid/go-orchestra/notes"
+	"github.com/nate-droid/go-orchestra/core/notes"
 )
 
 type Scale struct {
@@ -55,8 +55,8 @@ type ModeList []notes.Note
 type ModeName string
 
 type Mode struct {
-	Name     ModeName
-	Pattern  []int
+	Name    ModeName
+	Pattern []int
 	Position int
 }
 

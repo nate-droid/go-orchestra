@@ -2,8 +2,8 @@ package chords
 
 import (
 	"fmt"
-	"github.com/nate-droid/go-orchestra/notes"
-	"github.com/nate-droid/go-orchestra/scales"
+	"github.com/nate-droid/go-orchestra/core/notes"
+	"github.com/nate-droid/go-orchestra/core/scales"
 )
 
 // Chord is a representation of a musical chord, including a name (maj) a root (C)

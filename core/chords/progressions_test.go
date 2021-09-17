@@ -1,8 +1,8 @@
 package chords
 
 import (
-	"github.com/nate-droid/go-orchestra/notes"
-	"github.com/nate-droid/go-orchestra/scales"
+	"github.com/nate-droid/go-orchestra/core/notes"
+	"github.com/nate-droid/go-orchestra/core/scales"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

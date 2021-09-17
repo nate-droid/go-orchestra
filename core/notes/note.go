@@ -5,8 +5,8 @@ import (
 )
 
 type Note struct {
-	Name      Name
-	Index     int
+	Name  Name
+	Index int
 	Frequency float32
 	Octave    int
 }

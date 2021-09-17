@@ -2,9 +2,9 @@ package conductor
 
 import (
 	"fmt"
-	"github.com/nate-droid/go-orchestra/chords"
-	"github.com/nate-droid/go-orchestra/notes"
-	"github.com/nate-droid/go-orchestra/scales"
+	chords2 "github.com/nate-droid/go-orchestra/core/chords"
+	"github.com/nate-droid/go-orchestra/core/notes"
+	"github.com/nate-droid/go-orchestra/core/scales"
 	"github.com/nats-io/nats.go"
 )
 
@@ -25,8 +25,12 @@ type Symphony struct {
 }
 
 type Song struct {
+	ChordProgression []chords2.Chord
+}
+
+type SongStructure struct {
 	Key              notes.Note
-	ChordProgression []chords.ChordInterval
+	ChordProgression []chords2.ChordInterval
 	Mode             scales.ModeName
 }
 

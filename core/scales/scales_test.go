@@ -2,11 +2,10 @@ package scales
 
 import (
 	"fmt"
-	"github.com/nate-droid/go-orchestra/notes"
+	"github.com/nate-droid/go-orchestra/core/notes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
 )
 
 func TestStuff(t *testing.T) {
