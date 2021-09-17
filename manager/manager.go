@@ -2,13 +2,13 @@ package manager
 
 import (
 	"fmt"
+	// "github.com/nate-droid/go-orchestra/core"
 	"github.com/nats-io/nats.go"
-	"github.com/nate-droid/go-orchestra/conductor"
 	"time"
 )
 
 type Manager struct {
-	WaitForSymphony chan *conductor.Symphony
+	WaitForSymphony chan *core.Symphony
 	SymphonyReady   chan bool
 }
 
@@ -16,7 +16,7 @@ func newManager() (*Manager, error) {
 	nc, _ := nats.Connect(nats.DefaultURL)
 	ec, _ := nats.NewEncodedConn(nc, nats.JSON_ENCODER)
 
-	recvCh := make(chan *conductor.Symphony)
+	recvCh := make(chan *core.Symphony)
 	_, err := ec.BindRecvChan("createSymphony", recvCh)
 	if err != nil {
 		return nil, err
@@ -29,13 +29,13 @@ func newManager() (*Manager, error) {
 
 	man := &Manager{
 		WaitForSymphony: recvCh,
-		SymphonyReady: sendCh,
+		SymphonyReady:   sendCh,
 	}
 
 	return man, nil
 }
 
-func (m *Manager) hireOrchestra(symphony *conductor.Symphony) {
+func (m *Manager) hireOrchestra(symphony *core.Symphony) {
 	// for each section, we need to hire the musicians
 	for _, section := range symphony.Sections {
 		for i := 0; i < section.GroupSize; i++ {
@@ -49,7 +49,7 @@ func (m *Manager) hireOrchestra(symphony *conductor.Symphony) {
 	m.SymphonyReady <- true
 }
 
-func (m *Manager) hireMusician(song *conductor.SongStructure) bool {
+func (m *Manager) hireMusician(song *core.SongStructure) bool {
 	// create a container here!
 	return true
 }

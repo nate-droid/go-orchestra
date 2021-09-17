@@ -10,7 +10,7 @@ RUN go mod download
 COPY . .
 
 
-RUN go build -o ./conductor
+RUN go build -o ./server
 
 # step 2 deploy
 # FROM gcr.io/distroless/base-debian10
@@ -22,5 +22,4 @@ RUN go build -o ./conductor
 # Use an unprivileged user.
 # USER nonroot:nonroot
 
-ENTRYPOINT ["./conductor"]
-
+ENTRYPOINT ["./server"]

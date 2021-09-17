@@ -2,7 +2,7 @@ package scales
 
 import (
 	"fmt"
-	"github.com/nate-droid/go-orchestra/core/notes"
+	"github.com/nate-droid/core/notes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

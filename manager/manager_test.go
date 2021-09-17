@@ -16,6 +16,4 @@ func TestManager(t *testing.T) {
 	man.hireOrchestra(d)
 }
 
-func TestK8(t *testing.T) {
-	connectToKubernetes()
-}
+
