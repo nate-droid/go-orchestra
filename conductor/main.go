@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
 	"github.com/nate-droid/core/chords"
 	"github.com/nate-droid/core/notes"
 	"github.com/nate-droid/core/scales"
@@ -70,11 +68,15 @@ func (cond *Conductor) Run(ctx context.Context) error {
 	return errs.Wait()
 }
 
+// newSymphony will randomly generate a symphony
 func newSymphony() *symphony.Symphony {
 	rand.Seed(time.Now().Unix())
+
 	prog := chords.CommonProgressions[rand.Intn(len(chords.CommonProgressions))]
 	key := notes.GetAllNotes()[rand.Intn(len(notes.GetAllNotes()))]
+
 	u, _ := uuid.NewV4()
+
 	return &symphony.Symphony{
 		SongStructure: symphony.SongStructure{
 			Key:              key,
@@ -131,6 +133,7 @@ func newConductor() (*Conductor, error) {
 	return cond, nil
 }
 
+// newEncodedNatsCon will return a new connection to a nats instance
 func newEncodedNatsCon() (*nats.EncodedConn, error){
 	fmt.Println("nats: ", os.Getenv("NATS_URI"))
 	natsURI := os.Getenv("NATS_URI")
@@ -164,48 +167,3 @@ func main() {
 
 }
 
-func dockStuff() error {
-	ctx := context.Background()
-	c, err := client.NewClientWithOpts()
-	if err != nil {
-		return err
-	}
-	l, err := c.ImageList(ctx, types.ImageListOptions{All: true})
-	if err != nil {
-		return err
-	}
-	fmt.Println(l)
-	serviceList, err := c.ServiceList(ctx, types.ServiceListOptions{Status: true})
-	if err != nil {
-		return err
-	}
-	fmt.Println("serviceList: ", serviceList)
-	//spec := swarm.ServiceSpec{
-	//	Annotations: swarm.Annotations{
-	//		Name: "superdelete",
-	//	},
-	//	TaskTemplate: swarm.TaskSpec{
-	//		ContainerSpec: &swarm.ContainerSpec{Image: "conductor"},
-	//	},
-	//}
-	//_, err = c.ServiceCreate(ctx, spec, types.ServiceCreateOptions{})
-	if err != nil {
-		return err
-	}
-	for _, service := range serviceList {
-		if service.Spec.Annotations.Name == "superdelete" {
-			err = c.ServiceRemove(ctx, service.ID)
-			if err != nil {
-				return err
-			}
-			fmt.Println("deleted service")
-		}
-	}
-	//r, err := c.ServiceCreate()
-	//if err != nil {
-	//
-	//}
-	//c.ServiceCreate()
-	//c.SwarmInit()
-	return nil
-}

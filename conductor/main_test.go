@@ -40,10 +40,7 @@ func TestRun(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestDocker(t *testing.T) {
-	err := dockStuff()
-	assert.NoError(t, err)
-}
+
 
 func TestImport(t *testing.T) {
 	fmt.Println(chords.CommonProgressions)

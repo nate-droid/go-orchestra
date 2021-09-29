@@ -16,4 +16,9 @@ func TestManager(t *testing.T) {
 	man.hireOrchestra(d)
 }
 
+func TestDocker(t *testing.T) {
+	err := dockStuff()
+	assert.NoError(t, err)
+}
+
 
