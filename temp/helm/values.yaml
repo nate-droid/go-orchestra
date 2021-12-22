@@ -1,3 +1,0 @@
-prometheus:
-  kubeStateMetrics:
-    enabled: false

@@ -6,8 +6,8 @@ import (
 	"testing"
 )
 
-func TestManager(t *testing.T) {
-	man, err := newManager()
+func testManager(t *testing.T) {
+	man, err := NewManager()
 	if err != nil {
 		assert.NoError(t, err)
 	}
@@ -15,10 +15,3 @@ func TestManager(t *testing.T) {
 	fmt.Println(d)
 	man.hireOrchestra(d)
 }
-
-func TestDocker(t *testing.T) {
-	err := dockStuff()
-	assert.NoError(t, err)
-}
-
-

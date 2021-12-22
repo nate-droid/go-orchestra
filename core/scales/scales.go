@@ -1,13 +1,14 @@
 package scales
 
 import (
-	"github.com/nate-droid/core/notes"
+	"github.com/nate-droid/go-orchestra/core/notes"
 )
 
 type Scale struct {
 	Name    string
 	Pattern []string
 	Modes   []Mode
+	Degrees int
 }
 
 var MajorScale = Scale{
@@ -49,14 +50,15 @@ var MajorScale = Scale{
 			Pattern:  []int{Half, Whole, Whole, Half, Whole, Whole, Whole},
 		},
 	},
+	Degrees: 7,
 }
 
 type ModeList []notes.Note
 type ModeName string
 
 type Mode struct {
-	Name    ModeName
-	Pattern []int
+	Name     ModeName
+	Pattern  []int
 	Position int
 }
 
@@ -74,7 +76,7 @@ const (
 	Locrian    ModeName = "Locrian"
 )
 
-// Major Scale Modes
+// ModePatterns is a list of Major Scale Modes
 var ModePatterns = map[ModeName][]int{
 	Ionian:     {Whole, Whole, Half, Whole, Whole, Whole, Half},
 	Dorian:     {Whole, Half, Whole, Whole, Whole, Half, Whole},
@@ -93,17 +95,17 @@ func GetMajorScale(scale notes.Note) (ModeList, error) {
 	for _, interval := range pattern {
 		// x, _ := notes.FindIndex(currentIndex)
 		nextNoteIndex := currentIndex + interval
-		if nextNoteIndex > len(notes.GetAllNotes()) {
+		if nextNoteIndex > notes.ChromaticScaleLength {
 			// Do stuff
-			nextNoteIndex = nextNoteIndex - len(notes.GetAllNotes())
-			note, err := notes.FindIndex(currentIndex)
+			nextNoteIndex = nextNoteIndex - notes.ChromaticScaleLength
+			note, err := notes.FindIndex(currentIndex, false)
 			if err != nil || note == nil {
 				return nil, err
 			}
 			majorScale = append(majorScale, *note)
 			currentIndex = nextNoteIndex
 		} else {
-			note, err := notes.FindIndex(currentIndex)
+			note, err := notes.FindIndex(currentIndex, false)
 			if err != nil || note == nil {
 				return nil, err
 			}
@@ -122,17 +124,17 @@ func GetMode(mode ModeName, startNote notes.Note) (ModeList, error) {
 	for _, interval := range pattern {
 		// x, _ := notes.FindIndex(currentIndex)
 		nextNoteIndex := currentIndex + interval
-		if nextNoteIndex >= len(notes.GetAllNotes()) {
+		if nextNoteIndex >= notes.ChromaticScaleLength {
 			// Do stuff
-			nextNoteIndex = nextNoteIndex - len(notes.GetAllNotes())
-			note, err := notes.FindIndex(currentIndex)
+			nextNoteIndex = nextNoteIndex - notes.ChromaticScaleLength
+			note, err := notes.FindIndex(currentIndex, false)
 			if err != nil || note == nil {
 				return nil, err
 			}
 			modeList = append(modeList, *note)
 			currentIndex = nextNoteIndex
 		} else {
-			note, err := notes.FindIndex(currentIndex)
+			note, err := notes.FindIndex(currentIndex, false)
 			if err != nil || note == nil {
 				return nil, err
 			}

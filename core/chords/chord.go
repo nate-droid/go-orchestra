@@ -2,8 +2,8 @@ package chords
 
 import (
 	"fmt"
-	"github.com/nate-droid/core/notes"
-	"github.com/nate-droid/core/scales"
+	"github.com/nate-droid/go-orchestra/core/notes"
+	"github.com/nate-droid/go-orchestra/core/scales"
 )
 
 // Chord is a representation of a musical chord, including a name (maj) a root (C)
@@ -23,8 +23,9 @@ type ChordComponents struct {
 // ChordType is a string representation of a chord ie "major" or "diminished"
 type ChordType string
 
+// Chord Names
+// TODO sort out difference between these and the Intervals in components.go
 const (
-	// Chord Names
 	MajorChord            ChordType = "maj"
 	MinorChord            ChordType = "min"
 	DiminishedChord       ChordType = "dim"
@@ -40,35 +41,41 @@ const (
 	MinorMajorSeventh     ChordType = "min/maj7"
 )
 
-func NewChord(root notes.Name, name ChordType) Chord {
-	// TODO this just returns intervals, maybe clean this up?
-	ch := Chord{
-		Name: name,
-		Root: root,
-		Intervals: nil,
-	}
+func NewChord(root notes.Name, name ChordType) (*Chord, error) {
 	components := ChordList[name]
 
-	ch.Intervals = components
+	tones, err := GetChordTones(notes.ChromaticScale[root], name)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
 
-	return ch
+	ch := &Chord{
+		Name:      name,
+		Root:      root,
+		Intervals: components,
+		Notes:     tones,
+	}
+
+	return ch, nil
 }
 
 // GetChordTones returns a slice containing the tones that make up a specified chord type
 func GetChordTones(note notes.Note, chordType ChordType) ([]notes.Note, error) {
 	var chordTones []notes.Note
 	components := ChordList[chordType]
+
 	for _, interval := range components {
 		nextToneIndex := note.Index + int(interval)
-		if nextToneIndex >= len(notes.GetAllNotes()) {
-			nextToneIndex = nextToneIndex - len(notes.GetAllNotes())
-			tone, err := notes.FindIndex(nextToneIndex)
+		if nextToneIndex >= notes.ChromaticScaleLength {
+			nextToneIndex = nextToneIndex - notes.ChromaticScaleLength
+			tone, err := notes.FindIndex(nextToneIndex, false)
 			if err != nil {
 				return nil, err
 			}
 			chordTones = append(chordTones, *tone)
 		} else {
-			tone, err := notes.FindIndex(note.Index + int(interval))
+			tone, err := notes.FindIndex(note.Index+int(interval), false)
 			if err != nil {
 				return nil, err
 			}

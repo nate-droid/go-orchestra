@@ -1,165 +1,32 @@
-package main
+package server
 
 import (
 	"context"
 	"fmt"
-	"github.com/nate-droid/core/symphony"
+	"github.com/nate-droid/go-orchestra/core/symphony"
 	"github.com/nats-io/nats.go"
-	uuid "github.com/nu7hatch/gouuid"
-	bolt "go.etcd.io/bbolt"
 	"golang.org/x/sync/errgroup"
 	"os"
+	"sync"
 )
 
-var path = "store.db"
 var ReceiveSongSubject = "sendSong"
 
-type Store struct {
-	db *bolt.DB
+type Mem struct {
 	ReceiveSong chan *symphony.Song
+	Songs       map[string]symphony.Song
+	Symphonies  map[string]SymphonyEntry
+
+	mu sync.Mutex
 }
 
-func (store *Store) SaveSong(song *symphony.Song) error {
-	err := store.db.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte(song.SymphonyID))
-		if err != nil {
-			return err
-		}
-		encodedSong, err := encodeSong(song)
-		if err != nil {
-			return err
-		}
-
-		id, err := uuid.NewV4()
-		if err != nil {
-			return err
-		}
-		err = b.Put([]byte(id.String()), encodedSong)
-		fmt.Println("saved song!")
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-	err = store.SaveSymphonyID(song.SymphonyID)
-	if err != nil {
-		return err
-	}
-	return nil
+type SymphonyEntry struct {
+	Symphony      symphony.Symphony
+	MusicianCount int
+	TimesPlayed   int
 }
 
-func (store *Store) SaveSymphonyID(id string) error {
-	err := store.db.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte("symphonies"))
-		if err != nil {
-			return err
-		}
-		err = b.Put([]byte(id), []byte(""))
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (store *Store) FetchSong(id string) error {
-	err := store.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("songs"))
-		v := b.Get([]byte("test"))
-		fmt.Println("results: ", v)
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (store *Store) FetchLatestSymphonies() ([][]symphony.Song, error) {
-	var all [][]symphony.Song
-	ids, err := store.FetchSymphoniesIDs()
-	if err != nil {
-		return nil, err
-	}
-	for _, i := range ids {
-		allSongs, err := store.FetchSongsByBucket(i)
-		if err != nil {
-			return nil, err
-		}
-		all = append(all, allSongs)
-	}
-
-	return all,	nil
-}
-
-func (store *Store) FetchSymphoniesIDs() ([]string, error) {
-	var symphonies []string
-	err := store.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("symphonies"))
-
-		c := b.Cursor()
-
-		for k, v := c.First(); k != nil; k, v = c.Next() {
-			fmt.Printf("key=%s, value=%s\n", k, v)
-			symphonies = append(symphonies, string(k))
-		}
-
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return symphonies, nil
-}
-
-func (store *Store) run(ctx context.Context) error {
-	errs, ctx := errgroup.WithContext(ctx)
-	errs.Go(func() error {
-		for {
-			select {
-			case song := <- store.ReceiveSong:
-				err := store.SaveSong(song)
-				if err != nil {
-					return err
-				}
-			}
-		}
-	})
-
-	return errs.Wait()
-}
-
-func (store *Store) FetchSongsByBucket(bucket string) ([]symphony.Song, error) {
-	songs := []symphony.Song{}
-	err := store.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(bucket))
-		c := b.Cursor()
-		for k, v := c.First(); k != nil; k, v = c.Next() {
-			temp, err := decodeSong(v)
-			if err != nil {
-				return err
-			}
-			fmt.Println("cool? ", temp)
-			songs = append(songs, *temp)
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return songs, nil
-}
-
-func newStore() (*Store, error) {
-	db, err := bolt.Open(path, 0666, nil)
-	if err != nil {
-		return nil, err
-	}
-
+func newMem() (*Mem, error) {
 	fmt.Println("nats: ", os.Getenv("NATS_URI"))
 	natsURI := os.Getenv("NATS_URI")
 	if natsURI == "" {
@@ -175,16 +42,96 @@ func newStore() (*Store, error) {
 		return nil, err
 	}
 
-
 	recvCh := make(chan *symphony.Song)
 	_, err = ec.BindRecvChan(ReceiveSongSubject, recvCh)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Store{
-		db,
-		recvCh,
+	return &Mem{
+		Songs:       map[string]symphony.Song{},
+		Symphonies:  map[string]SymphonyEntry{},
+		ReceiveSong: recvCh,
 	}, nil
 }
 
+func (m *Mem) run(ctx context.Context) error {
+	errs, ctx := errgroup.WithContext(ctx)
+	errs.Go(func() error {
+		for {
+			select {
+			case song := <-m.ReceiveSong:
+				err := m.StoreSong(song)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	})
+
+	return errs.Wait()
+}
+
+func (m *Mem) StoreSong(song *symphony.Song) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if len(m.Songs) >= 10 {
+		fmt.Println("storage capacity for songs has been reached. Skipped")
+		return nil
+	}
+
+	m.Songs[song.SymphonyID] = *song
+
+	fmt.Printf("storing song with SymphonyID: %s\n", song.SymphonyID)
+
+	return nil
+}
+
+func (m *Mem) StoreSymphony(s symphony.Symphony) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if len(m.Symphonies) >= 10 {
+		fmt.Println("storage capacity for songs has been reached. Skipped")
+		return nil
+	}
+
+	m.Symphonies[s.ID] = SymphonyEntry{
+		Symphony:      s,
+		MusicianCount: s.GroupSize,
+		TimesPlayed:   0,
+	}
+
+	fmt.Printf("storing song with SymphonyID: %s\n", s.ID)
+
+	return nil
+}
+
+func (m *Mem) FetchSymphonyByID(id string) (*symphony.Symphony, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	s, ok := m.Symphonies[id]
+	if !ok {
+		return nil, fmt.Errorf("could not find Symphony with ID: %s", id)
+	}
+	if s.TimesPlayed >= s.MusicianCount {
+		return nil, fmt.Errorf("symphony with ID: %s has alread been played the maximum amount")
+	}
+
+	return &s.Symphony, nil
+}
+
+func (m *Mem) UpdateSymphony(id string) error {
+	return nil
+}
+
+func (m *Mem) FetchAllSongs() (map[string]symphony.Song, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	songs := m.Songs
+
+	return songs, nil
+}

@@ -1,3 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-music-frontend
+spec:
+  selector:
+    app: music
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: LoadBalancer
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-music-api
+spec:
+  selector:
+    app: music
+  ports:
+    - port: 1323
+      targetPort: 1323
+  type: LoadBalancer
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,7 +44,42 @@ spec:
     spec:
       containers:
         - name: conductor
-          image: conductor
-          imagePullPolicy: Never
-        - name: nats
-          image: nats:latest
+          image: natedroid/go-orchestra:latest
+          imagePullPolicy: Always
+          env:
+            - name: SERVICE_TYPE
+              value: "conductor"
+            - name: "NATS_URI"
+              value: "nats://nats:4222"
+        - name: musician
+          image: natedroid/go-orchestra:latest
+          imagePullPolicy: Always
+          env:
+            - name: SERVICE_TYPE
+              value: "musician"
+            - name: "NATS_URI"
+              value: "nats://nats:4222"
+        - name: server
+          image: natedroid/go-orchestra:latest
+          imagePullPolicy: Always
+          env:
+            - name: SERVICE_TYPE
+              value: "server"
+            - name: "NATS_URI"
+              value: "nats://nats:4222"
+        - name: client
+          image: natedroid/go-orchestra
+          imagePullPolicy: Always
+          env:
+            - name: SERVICE_TYPE
+              value: "client"
+            - name: "NATS_URI"
+              value: "nats://nats:4222"
+        - name: manager
+          image: natedroid/go-orchestra:latest
+          imagePullPolicy: Always
+          env:
+            - name: SERVICE_TYPE
+              value: "manager"
+            - name: "NATS_URI"
+              value: "nats://nats:4222"

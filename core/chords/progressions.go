@@ -1,13 +1,14 @@
 package chords
 
 import (
-	"github.com/nate-droid/core/notes"
-	"github.com/nate-droid/core/scales"
+	"github.com/nate-droid/go-orchestra/core/notes"
+	"github.com/nate-droid/go-orchestra/core/scales"
 )
 
 type ChordInterval int
 
 // TODO add names of positions, ie Tonic, subdominant, etc...
+// TODO show intervals available in a scale (ie I, ii, iii, IV, V, vi, vii°)
 const (
 	I   ChordInterval = 1
 	i	ChordInterval = -1
@@ -31,6 +32,8 @@ var CommonProgressions = [][]ChordInterval{
 	{ii, V, I},
 	{I, vi, IV, V},
 }
+// TODO add plagal progressions
+// TODO generate random circle progressions
 
 func Progression(mode scales.ModeName, intervals []ChordInterval, key notes.Note) ([]Chord, error) {
 	// get the scale

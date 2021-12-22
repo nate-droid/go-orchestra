@@ -1,14 +1,14 @@
+.PHONY: build
 build:
-	DOCKER_BUILDKIT=1
-	docker-compose -f docker-compose.yaml build
+	@echo "Building..."
+	# TODO build client and make sure binary is available
+	# TODO env variables for tags and repo name
+	docker build . -t natedroid/go-orchestra
 
-up:
-	docker-compose up
 
-update-core:
-	cd conductor/
-	go get -v -u github.com/nate-droid/core
-	cd ..
-	cd musician
-	go get -v -u github.com/nate-droid/core
-	cd ..
+.PHONY: push
+push:
+	docker image push natedroid/go-orchestra
+
+.PHONY: test-all
+	go test -v ./...
