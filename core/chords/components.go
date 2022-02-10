@@ -19,6 +19,7 @@ type Interval int
 type Component []Interval
 type ChordMap map[ChordType][]Interval
 
+// TODO needs error checking (like fetching a chord that doesn't exist)
 var ChordList = ChordMap{
 	MajorChord:            []Interval{P1, major3, P5},
 	MinorChord:            []Interval{P1, minor3, P5},

@@ -1,8 +1,8 @@
 package chords
 
 import (
-	"github.com/nate-droid/core/notes"
-	"github.com/nate-droid/core/scales"
+	"github.com/nate-droid/go-orchestra/core/notes"
+	"github.com/nate-droid/go-orchestra/core/scales"
 	"reflect"
 	"testing"
 
@@ -38,7 +38,7 @@ func TestGetChordTones(t *testing.T) {
 		{
 			name: "F Major Chord",
 			args: args{
-				note: notes.F,
+				note:      notes.F,
 				chordType: MajorChord,
 			},
 			want: []notes.Note{notes.F, notes.A, notes.C},
@@ -53,9 +53,6 @@ func TestGetChordTones(t *testing.T) {
 		})
 	}
 }
-// todo index F = 5
-// interval P5 7
-// index is 12
 
 func TestGetChordTypeForScalePosition(t *testing.T) {
 	type args struct {
@@ -74,7 +71,7 @@ func TestGetChordTypeForScalePosition(t *testing.T) {
 				scalePosition: 0,
 				scale:         scales.MajorScale,
 			},
-			want:    []ChordType{MajorChord, MajorSeventh, MajorSixth}, // TODO add all of the chords
+			want:    []ChordType{MajorChord, MajorSeventh, MajorSixth},
 			wantErr: false,
 		},
 	}
@@ -102,7 +99,7 @@ func TestNewChord(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want Chord
+		want *Chord
 	}{
 		{
 			name: "Test creating C Maj",
@@ -110,16 +107,32 @@ func TestNewChord(t *testing.T) {
 				root: notes.C.Name,
 				name: MajorChord,
 			},
-			want: Chord{
+			want: &Chord{
 				Name:      MajorChord,
 				Root:      notes.C.Name,
 				Intervals: []Interval{P1, major3, P5},
+				Notes: []notes.Note{
+					{
+						Name: notes.C.Name, Index: 0, Frequency: 261.63, Octave: 4, IsFlat: false,
+					},
+					{
+						Name: notes.E.Name, Index: 4, Frequency: 329.63, Octave: 4, IsFlat: false,
+					},
+					{
+						Name: notes.G.Name, Index: 7, Frequency: 392, Octave: 4, IsFlat: false,
+					},
+				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewChord(tt.args.root, tt.args.name); !reflect.DeepEqual(got, tt.want) {
+			got, err := NewChord(tt.args.root, tt.args.name)
+			if err != nil {
+				t.Errorf("NewChord() error = %v, wantErr %v", err, tt.want)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewChord() = %v, want %v", got, tt.want)
 			}
 		})

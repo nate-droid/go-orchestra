@@ -1,5 +1,10 @@
 todo.txt
-/core/
-/ui/.svelte-kit/
-/ui/node_modules/
+todo
 /server/*.db
+
+/temp/
+
+
+client/build/
+client/node_modules/
+
