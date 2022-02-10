@@ -132,7 +132,7 @@ func createJob(clientset *kubernetes.Clientset, symphony *symphony.Symphony) err
 	namespace := v1.NamespaceDefault
 	jobName := symphony.SymphonyID
 
-	job := clientset.BatchV1().Jobs(namespace)
+	_ = clientset.BatchV1().Jobs(namespace)
 	var backOffLimit int32 = 0
 
 	//containers := make([]v1.Container, imageCount)
@@ -151,7 +151,7 @@ func createJob(clientset *kubernetes.Clientset, symphony *symphony.Symphony) err
 	//	containers = append(containers, c)
 	//}
 
-	jobSpec := &batchv1.Job{
+	_ = &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: jobName,
 			Labels: map[string]string{
@@ -194,10 +194,10 @@ func createJob(clientset *kubernetes.Clientset, symphony *symphony.Symphony) err
 		},
 	}
 
-	_, err := job.Create(context.TODO(), jobSpec, metav1.CreateOptions{})
-	if err != nil {
-		return err
-	}
+	//_, err := job.Create(context.TODO(), jobSpec, metav1.CreateOptions{})
+	//if err != nil {
+	//	return err
+	//}
 	fmt.Println("Job created")
 
 	return nil
